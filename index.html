@@ -3,101 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 沖繩連動地圖手冊</title>
+    <title>2026 沖繩全域連動手冊</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: "PingFang TC", sans-serif; margin: 0; background-color: #f4f7f9; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: "PingFang TC", sans-serif; margin: 0; display: flex; height: 100vh; background: #f4f7f9; }
         
-        /* 左側行程區（可捲動） */
-        #content-wrapper { width: 60%; height: 100vh; overflow-y: auto; padding: 20px; box-sizing: border-box; scroll-behavior: smooth; }
+        /* 左側行程：寬度 45% */
+        #itinerary { width: 45%; height: 100vh; overflow-y: auto; padding: 30px; box-sizing: border-box; border-right: 1px solid #ddd; }
         
-        /* 右側地圖區（固定） */
-        #map-wrapper { width: 40%; height: 100vh; background: #eee; border-left: 2px solid #ddd; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; }
+        /* 右側地圖：寬度 55% 固定 */
+        #map-container { width: 55%; height: 100vh; position: sticky; top: 0; background: #fff; }
+        #map { width: 100%; height: 100%; }
 
-        /* 卡片樣式微調 */
-        .day-title { background: #2c3e50; color: #fff; padding: 8px 20px; border-radius: 50px; margin: 40px auto 20px; width: fit-content; }
-        .timeline { position: relative; padding-left: 20px; border-left: 2px solid #d1d8e0; margin-left: 20px; }
-        
-        .content-card { 
-            background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; border: 2px solid transparent;
+        /* 卡片設計 */
+        .day-section { margin-bottom: 50px; }
+        .day-header { background: #2c3e50; color: #fff; padding: 10px 20px; border-radius: 5px; margin-bottom: 20px; }
+        .card { 
+            background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 15px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; border-left: 5px solid #dcdcdc;
         }
-        /* 滑鼠經過時卡片變色，提醒連動中 */
-        .content-card:hover { border-color: #d9534f; transform: translateX(5px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .card:hover { border-left-color: #d9534f; background: #fff9f9; transform: translateX(5px); }
+        .card.active { border-left-color: #d9534f; box-shadow: 0 4px 15px rgba(217, 83, 79, 0.2); }
 
         .time { font-weight: bold; color: #d9534f; margin-right: 10px; }
-        .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #fff; background: #3498db; }
-        
-        /* 手機版適應：地圖會消失或移到底部 */
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; color: #fff; background: #3498db; }
+
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow: auto; }
-            #content-wrapper { width: 100%; height: auto; }
-            #map-wrapper { width: 100%; height: 300px; position: sticky; top: 0; z-index: 1001; }
+            body { flex-direction: column; height: auto; }
+            #itinerary, #map-container { width: 100%; height: 50vh; }
         }
     </style>
 </head>
 <body>
 
-<div id="content-wrapper">
-    <h1 style="text-align:center;">🌊 沖繩行程地圖連動版</h1>
+<div id="itinerary">
+    <h1>🌊 沖繩行程全域導覽</h1>
 
-    <div class="day-title">📍 Day 1 | 4/24</div>
-    <div class="timeline">
-        <div class="content-card" onmouseover="updateMap('那霸機場')">
+    <div class="day-section">
+        <div class="day-header">D1 | 4/24 抵達與美國村</div>
+        <div class="card" onmouseover="focusLocation('airport')" onmouseout="resetFocus()">
             <span class="time">12:15</span><span class="badge">✈️ 交通</span>
-            <h4>那霸機場 (JX870)</h4>
-            <p>領取行李、辦理租車</p>
+            <h4>那霸機場</h4>
+            <p>領行李、辦理租車</p>
         </div>
-
-        <div class="content-card" onmouseover="updateMap('沖繩美爾度假大酒店')">
-            <span class="time">下午</span><span class="badge" style="background:#8e44ad;">🏨 住宿</span>
-            <h4>飯店 Check-in</h4>
-            <p>沖繩美爾度假大酒店</p>
-        </div>
-
-        <div class="content-card" onmouseover="updateMap('美國村海灘')">
+        <div class="card" onmouseover="focusLocation('americanVillage')" onmouseout="resetFocus()">
             <span class="time">下午</span><span class="badge" style="background:#27ae60;">🌅 景點</span>
-            <h4>美國村海灘散步</h4>
-            <p>看夕陽、逛逛</p>
+            <h4>美國村海灘</h4>
+            <p>看夕陽、散步</p>
         </div>
     </div>
 
-    <div class="day-title">📍 Day 2 | 4/25</div>
-    <div class="timeline">
-        <div class="content-card" onmouseover="updateMap('美麗海水族館')">
+    <div class="day-section">
+        <div class="day-header">D2 | 4/25 水族館重點日</div>
+        <div class="card" onmouseover="focusLocation('aquarium')" onmouseout="resetFocus()">
             <span class="time">10:30</span><span class="badge" style="background:#27ae60;">🐬 景點</span>
             <h4>美麗海水族館</h4>
-            <p>看海豚秀</p>
+            <p>看黑潮之海、海豚秀</p>
         </div>
-
-        <div class="content-card" onmouseover="updateMap('古宇利大橋')">
+        <div class="card" onmouseover="focusLocation('kourijima')" onmouseout="resetFocus()">
             <span class="time">下午</span><span class="badge" style="background:#00cec9;">🏝️ 景點</span>
             <h4>古宇利島</h4>
-            <p>跨海大橋、蝦蝦飯</p>
+            <p>跨海大橋、心形岩</p>
         </div>
     </div>
-    
-    <p style="text-align:center; color:#ccc; margin-top:50px;">(其餘行程以此類推...)</p>
 </div>
 
-<div id="map-wrapper">
-    <iframe id="google-map" 
-        src="https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY_OPTIONAL&q=Okinawa" 
-        allowfullscreen>
-    </iframe>
+<div id="map-container">
+    <div id="map"></div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 這段小程式碼負責切換地圖
-    function updateMap(locationName) {
-        const baseUrl = "https://www.google.com/maps?q=";
-        const finalUrl = baseUrl + encodeElementSibling(locationName) + "&output=embed";
-        document.getElementById('google-map').src = finalUrl;
+    // 1. 初始化地圖，中心點設在沖繩中部，縮放等級設為 10 (可以看到全島)
+    const map = L.map('map').setView([26.48, 127.9], 10);
+
+    // 2. 使用 OpenStreetMap 的免費圖磚 (也可以換成 Google 風格)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // 3. 定義景點座標
+    const locations = {
+        airport: { lat: 26.2064, lng: 127.6465, name: "那霸機場", marker: null },
+        americanVillage: { lat: 26.3163, lng: 127.7576, name: "美國村", marker: null },
+        aquarium: { lat: 26.6944, lng: 127.8779, name: "美麗海水族館", marker: null },
+        kourijima: { lat: 26.7118, lng: 128.0195, name: "古宇利島", marker: null }
+    };
+
+    // 4. 在地圖上放置所有標記點
+    for (let key in locations) {
+        const loc = locations[key];
+        loc.marker = L.circleMarker([loc.lat, loc.lng], {
+            radius: 8,
+            fillColor: "#3498db",
+            color: "#fff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map).bindPopup(loc.name);
     }
 
-    // 輔助函式：處理中文字轉網址格式
-    function encodeElementSibling(name) {
-        return encodeURIComponent(name + " Okinawa");
+    // 5. 滑鼠移過卡片時的連動功能
+    function focusLocation(key) {
+        const loc = locations[key];
+        // 讓該點變大、變色
+        loc.marker.setStyle({
+            radius: 15,
+            fillColor: "#d9534f"
+        });
+        loc.marker.openPopup();
+        // 輕微平移地圖中心點，但保持縮放等級，讓使用者有感覺
+        map.panTo([loc.lat, loc.lng]);
+    }
+
+    // 6. 滑鼠移開後恢復原狀
+    function resetFocus() {
+        for (let key in locations) {
+            locations[key].marker.setStyle({
+                radius: 8,
+                fillColor: "#3498db"
+            });
+            locations[key].marker.closePopup();
+        }
     }
 </script>
 
