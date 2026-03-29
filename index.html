@@ -9,22 +9,22 @@
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; margin: 0; display: flex; height: 100vh; background: #f4f7f9; color: #333; }
         
         /* 左側行程區 */
-        #itinerary { width: 45%; height: 100vh; overflow-y: auto; padding: 40px 30px; box-sizing: border-box; border-right: 1px solid #ddd; scroll-behavior: smooth; }
+        #itinerary { width: 55%; height: 100vh; overflow-y: auto; padding: 40px 30px; box-sizing: border-box; border-right: 1px solid #ddd; scroll-behavior: smooth; }
         
         /* 右側地圖區 */
-        #map-container { width: 55%; height: 100vh; position: sticky; top: 0; background: #fff; }
+        #map-container { width: 45%; height: 100vh; position: sticky; top: 0; background: #fff; z-index: 10; }
         #map { width: 100%; height: 100%; }
 
-        /* 區塊樣式 */
+        /* 標題與資訊區塊 */
         .section-box { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .flight-info { border-left: 5px solid #3498db; }
         .notes-info { border-left: 5px solid #f1c40f; }
         
-        h1 { text-align: center; color: #2c3e50; margin-top: 0; }
+        h1 { text-align: center; color: #2c3e50; margin-top: 0; font-size: 1.8em; }
         h3 { margin-top: 0; color: #2c3e50; display: flex; align-items: center; gap: 8px; }
         
         /* 每日行程卡片 */
-        .day-header { background: #2c3e50; color: #fff; padding: 10px 20px; border-radius: 50px; margin: 40px 0 20px 0; font-size: 18px; width: fit-content; }
+        .day-header { background: #2c3e50; color: #fff; padding: 10px 25px; border-radius: 50px; margin: 40px 0 20px 0; font-size: 18px; width: fit-content; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .card { 
             background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 15px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; border-left: 5px solid #dcdcdc;
@@ -44,9 +44,26 @@
 
         .note-text { font-size: 13px; color: #7f8c8d; font-style: italic; margin-top: 5px; display: block; }
 
+        /* 手機版 RWD 優化 */
         @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; }
-            #itinerary, #map-container { width: 100%; height: 50vh; }
+            body { flex-direction: column; overflow-x: hidden; }
+            #map-container { 
+                width: 100%; 
+                height: 30vh; /* 地圖佔 30% */
+                position: fixed; /* 固定在頂部 */
+                top: 0;
+                border-bottom: 3px solid #d9534f;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }
+            #itinerary { 
+                width: 100%; 
+                margin-top: 30vh; /* 留出頂部地圖的空間 */
+                height: 70vh; 
+                padding: 20px;
+                border-right: none;
+            }
+            h1 { font-size: 1.4em; }
+            .day-header { font-size: 16px; }
         }
     </style>
 </head>
@@ -57,19 +74,20 @@
 
     <div class="section-box flight-info">
         <h3>✈️ 航班資訊 (星宇航空)</h3>
-        <p style="font-size: 14px; margin: 5px 0;">
+        <p style="font-size: 14px; line-height: 1.6;">
             <b>去程 (4/24)：</b>JX870 | 09:30 TPE → 12:15 OKA<br>
             <b>回程 (4/27)：</b>JX871 | 13:35 OKA → 14:10 TPE<br>
-            <small style="color: #e74c3c;">* 建議 11:35 前抵達那霸機場辦理報到</small>
+            <span style="color: #e74c3c;">📍 第一航廈 07:30 報到</span><br>
+            <span style="color: #e74c3c;">📍 那霸機場 11:35 報到</span>
         </p>
     </div>
 
     <div class="section-box notes-info">
-        <h3>📝 行前隨手筆記</h3>
-        <ul style="font-size: 14px; padding-left: 20px; margin: 0;">
-            <li>帶上護照（檢查效期）。</li>
-            <li>確認飯店備品：床圍、澡盆（已預約）。</li>
-            <li>4/25 (六) 晚上 20:00 美國村煙火秀。</li>
+        <h3>📝 行前筆記</h3>
+        <ul style="font-size: 14px; padding-left: 20px; line-height: 1.8;">
+            <li>護照、個人藥品、愉快的心 🥰</li>
+            <li>預約清單：床圍、澡盆（確認完成）。</li>
+            <li style="font-weight: bold; color: #d35400;">4/25 (六) 20:00 美國村煙火</li>
         </ul>
     </div>
 
@@ -77,83 +95,63 @@
     <div class="card" onmouseover="focusLocation('airport')">
         <div class="time-row"><span class="time">12:15</span><span class="badge bg-transport">✈️ 交通</span></div>
         <h4>抵達那霸機場</h4>
-        <p>領行李、辦理租車/包車手續</p>
+        <p>辦理租車手續</p>
     </div>
     <div class="card" onmouseover="focusLocation('hotel1')">
         <div class="time-row"><span class="time">下午</span><span class="badge bg-hotel">🏨 住宿</span></div>
-        <h4>沖繩美爾度假大酒店 Check-in</h4>
-        <p>放置行李、稍作休息</p>
+        <h4>沖繩美爾度假大酒店</h4>
+        <p>Check-in 休息</p>
     </div>
     <div class="card" onmouseover="focusLocation('americanVillage')">
-        <div class="time-row"><span class="time">下午</span><span class="badge bg-spot">🌅 景點</span></div>
-        <h4>美國村海灘散步</h4>
-        <p>看夕陽、逛逛特色小店</p>
+        <div class="time-row"><span class="time">黃昏</span><span class="badge bg-spot">🌅 景點</span></div>
+        <h4>美國村海灘</h4>
+        <p>夕陽與散步</p>
     </div>
     <div class="card" onmouseover="focusLocation('goen')">
         <div class="time-row"><span class="time">晚間</span><span class="badge bg-food">🍱 晚餐</span></div>
         <h4>燒肉五苑 (北谷店)</h4>
-        <span class="note-text">備註：不限時吃到飽</span>
+        <span class="note-text">不限時吃到飽</span>
     </div>
 
     <div class="day-header">📍 Day 2 | 4/25 (週六)</div>
     <div class="card" onmouseover="focusLocation('aquarium')">
         <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🐬 景點</span></div>
         <h4>美麗海水族館</h4>
-        <p>看黑潮之海大水槽、海豚秀</p>
-    </div>
-    <div class="card" onmouseover="focusLocation('inoh')">
-        <div class="time-row"><span class="time">11:00</span><span class="badge bg-food">🍴 午餐</span></div>
-        <h4>展望餐廳 Inoh (4樓)</h4>
-        <span class="note-text">備註：水族館內自助餐</span>
+        <p>黑潮之海、海豚秀</p>
     </div>
     <div class="card" onmouseover="focusLocation('kourijima')">
         <div class="time-row"><span class="time">下午</span><span class="badge bg-island">🏝️ 景點</span></div>
         <h4>古宇利島</h4>
-        <p>跨海大橋、海灘散步、吃蝦蝦飯</p>
+        <p>跨海大橋與蝦蝦飯</p>
     </div>
     <div class="card" onmouseover="focusLocation('ufuya')">
         <div class="time-row"><span class="time">17:30</span><span class="badge bg-food">🐖 晚餐</span></div>
         <h4>百年古家 大家</h4>
-        <span class="note-text">備註：阿古豬料理、古民家包廂</span>
-    </div>
-    <div class="card" onmouseover="focusLocation('americanVillage')">
-        <div class="time-row"><span class="time">20:00</span><span class="badge bg-spot">🎆 煙火</span></div>
-        <h4>美國村煙火秀</h4>
-        <p>週六限定快閃施放</p>
+        <span class="note-text">阿古豬料理</span>
     </div>
 
     <div class="day-header">📍 Day 3 | 4/26 (週日)</div>
     <div class="card" onmouseover="focusLocation('zoo')">
         <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🦁 景點</span></div>
         <h4>沖繩兒童王國</h4>
-        <p>動物園、神奇博物館科學館</p>
-    </div>
-    <div class="card" onmouseover="focusLocation('goten')">
-        <div class="time-row"><span class="time">中午</span><span class="badge bg-food">🍱 午餐</span></div>
-        <h4>御菓子御殿 讀谷本店</h4>
-        <span class="note-text">備註：花笠餐廳 (榻榻米空間)</span>
+        <p>動物園與科學館</p>
     </div>
     <div class="card" onmouseover="focusLocation('hotel2')">
         <div class="time-row"><span class="time">15:30</span><span class="badge bg-hotel">🏨 住宿</span></div>
-        <h4>那霸 嘉新酒店 Check-in</h4>
-        <p>換飯店到那霸市區國際通附近</p>
-    </div>
-    <div class="card" onmouseover="focusLocation('nahaDinner')">
-        <div class="time-row"><span class="time">18:30</span><span class="badge bg-food">🍲 晚餐</span></div>
-        <h4>那霸市區晚餐</h4>
-        <span class="note-text">備註：獨家蒸料理、個室包廂</span>
+        <h4>那霸 嘉新酒店</h4>
+        <p>Check-in (國際通旁)</p>
     </div>
 
     <div class="day-header">📍 Day 4 | 4/27 (週一)</div>
     <div class="card" onmouseover="focusLocation('fishMarket')">
         <div class="time-row"><span class="time">08:00</span><span class="badge bg-food">🐟 早餐</span></div>
         <h4>泊いゆまち 魚市場</h4>
-        <p>最後採買海鮮、吃澎湃早餐</p>
+        <p>最後的海鮮巡禮</p>
     </div>
     <div class="card" onmouseover="focusLocation('airport')">
         <div class="time-row"><span class="time">11:30</span><span class="badge bg-transport">✈️ 交通</span></div>
-        <h4>抵達機場辦理報到</h4>
-        <p>搭乘 JX871 返台</p>
+        <h4>那霸機場報到</h4>
+        <p>搭乘 JX871 回家</p>
     </div>
 </div>
 
@@ -163,38 +161,39 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. 初始化地圖中心
-    const map = L.map('map', { scrollWheelZoom: true }).setView([26.45, 127.9], 10);
+    // 智慧型縮放判斷：如果是小螢幕就縮小一點
+    const isMobile = window.innerWidth < 768;
+    const initialZoom = isMobile ? 10 : 10.5;
+
+    // 1. 初始化地圖
+    const map = L.map('map', { 
+        scrollWheelZoom: !isMobile, // 手機禁用滾輪縮放避免誤觸
+        dragging: true 
+    }).setView([26.45, 127.9], initialZoom);
 
     // 2. 使用圖磚
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // 3. 完整景點座標資料庫
     const locations = {
         airport: { lat: 26.2064, lng: 127.6465, name: "那霸機場" },
         hotel1: { lat: 26.3315, lng: 127.8175, name: "沖繩美爾度假大酒店" },
         americanVillage: { lat: 26.3163, lng: 127.7576, name: "美國村" },
-        goen: { lat: 26.3125, lng: 127.7635, name: "燒肉五苑 北谷店" },
+        goen: { lat: 26.3125, lng: 127.7635, name: "燒肉五苑" },
         aquarium: { lat: 26.6944, lng: 127.8779, name: "美麗海水族館" },
-        inoh: { lat: 26.6940, lng: 127.8785, name: "展望餐廳 Inoh" },
         kourijima: { lat: 26.7118, lng: 128.0195, name: "古宇利島" },
         ufuya: { lat: 26.6225, lng: 127.9655, name: "百年古家 大家" },
         zoo: { lat: 26.3312, lng: 127.8005, name: "沖繩兒童王國" },
-        goten: { lat: 26.3935, lng: 127.7395, name: "御菓子御殿 讀谷本店" },
-        hotel2: { lat: 26.2165, lng: 127.6845, name: "嘉新酒店 (那霸)" },
-        nahaDinner: { lat: 26.2145, lng: 127.6815, name: "那霸蒸料理餐廳" },
+        hotel2: { lat: 26.2165, lng: 127.6845, name: "嘉新酒店" },
         fishMarket: { lat: 26.2275, lng: 127.6865, name: "泊いゆまち 魚市場" }
     };
 
     const markers = {};
-
-    // 4. 放置所有標記
     for (let key in locations) {
         const loc = locations[key];
         markers[key] = L.circleMarker([loc.lat, loc.lng], {
-            radius: 7,
+            radius: 8,
             fillColor: "#3498db",
             color: "#fff",
             weight: 2,
@@ -203,31 +202,20 @@
         }).addTo(map).bindPopup(loc.name);
     }
 
-    // 5. 滑鼠連動函式
     function focusLocation(key) {
         const loc = locations[key];
         const marker = markers[key];
-        
-        // 重設所有標記顏色
         for (let k in markers) {
-            markers[k].setStyle({ radius: 7, fillColor: "#3498db" });
+            markers[k].setStyle({ radius: 8, fillColor: "#3498db" });
         }
-
-        // 高亮當前標記
-        marker.setStyle({
-            radius: 14,
-            fillColor: "#d9534f"
-        });
+        marker.setStyle({ radius: 15, fillColor: "#d9534f" });
         marker.openPopup();
-        
-        // 平滑移到該位置，但不改變縮放級別
         map.panTo([loc.lat, loc.lng]);
     }
 
-    // 點擊地圖空白處重設
     map.on('click', function() {
         for (let k in markers) {
-            markers[k].setStyle({ radius: 7, fillColor: "#3498db" });
+            markers[k].setStyle({ radius: 8, fillColor: "#3498db" });
             markers[k].closePopup();
         }
     });
