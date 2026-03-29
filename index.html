@@ -36,22 +36,21 @@
             align-items: center; 
         }
         
-        /* 電腦版 hover 與 滾動選中狀態 */
         .card:hover { border-left-color: #d9534f; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .card.active-card { border-left-color: #d9534f; background: #fff9f9; transform: scale(1.03); box-shadow: 0 8px 20px rgba(217, 83, 79, 0.15); z-index: 2; }
 
-        /* 電腦版圖片比例：精緻正方形或稍長 */
         .card-img { 
-            width: 35%; /* 電腦版寬度縮小 */
+            width: 35%; /* 電腦版寬度 */
             height: 100%; 
-            aspect-ratio: 1 / 1; /* 電腦版強制 1:1 或 4:3 都可以 */
+            aspect-ratio: 1 / 1; 
             object-fit: cover; 
             display: block; 
         }
         
         .card-body { 
-            width: 65%; /* 文字佔大比例 */
+            width: 65%; 
             padding: 20px 25px; 
+            box-sizing: border-box;
         }
 
         .time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -65,16 +64,28 @@
         .bg-island { background: #00cec9; }
         .note-text { font-size: 12px; color: #7f8c8d; font-style: italic; margin-top: 5px; display: block; }
 
-        /* 手機版 RWD：還原成上下疊加 */
+        /* 手機版 RWD 修正 */
         @media (max-width: 768px) {
             body { flex-direction: column; height: 100vh; }
             #map-container { width: 100%; height: 35vh; position: fixed; top: 0; z-index: 100; border-bottom: 3px solid #d9534f; }
             #itinerary { width: 100%; margin-top: 35vh; height: 65vh; padding: 20px; border-right: none; }
             
-            .card { flex-direction: column; align-items: flex-start; } /* 還原上下分 */
-            .card-img { width: 100%; height: auto; aspect-ratio: 16 / 9; } /* 手機版維持原本比例 */
-            .card-body { width: 100%; padding: 15px 20px; }
+            .card { flex-direction: column; align-items: flex-start; } 
+            .card-img { width: 100%; height: auto; aspect-ratio: 16 / 9; } 
             
+            .card-body { 
+                padding: 15px !important; 
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+            
+            .time-row { 
+                justify-content: flex-start !important; /* 手機版靠左防止卡掉 */
+                gap: 12px; 
+                flex-wrap: wrap; 
+                margin-bottom: 8px;
+            }
+    
             .card.active-card { transform: scale(1.02); }
             .dashboard-container { flex-direction: column; }
         }
@@ -107,7 +118,7 @@
     <div class="card" data-location="airport">
         <img src="https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=800&q=80" class="card-img">
         <div class="card-body">
-            <div class="time-row"><span class="time">12:15</span><span class="badge bg-transport">✈️ 交通</span></div>
+            <div class="time-row"><span class="time">12:15</span><span class="badge bg-transport">✈️ 抵達 OKA</span></div>
             <h4>抵達那霸機場</h4><p>辦理租車手續，開啟旅程。</p>
         </div>
     </div>
@@ -262,6 +273,7 @@
         if (activeCard) activeCard.classList.add('active-card');
     }
 
+    // 滾動偵測腳本
     const itinerary = document.getElementById('itinerary');
     itinerary.addEventListener('scroll', () => {
         const cards = document.querySelectorAll('.card');
