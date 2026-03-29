@@ -3,176 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 沖繩家族旅行 | 時間軸手冊</title>
+    <title>2026 沖繩家族旅行 | 行程手冊</title>
     <style>
-        /* 全域設定：模仿截圖的背景與字體 */
-        body { font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif; line-height: 1.6; margin: 0; background-color: #f6f8fb; color: #1a1a1a; display: flex; }
+        body { font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif; line-height: 1.6; margin: 0; background-color: #f4f7f9; color: #333; }
         
-        /* 固定側邊欄 */
-        #sidebar { width: 150px; position: fixed; height: 100vh; border-right: 1px solid #e1e8f0; padding: 30px 20px; background: #fff; z-index: 100; }
-        #sidebar h3 { font-size: 16px; border-bottom: 2px solid #5d6d7e; padding-bottom: 8px; margin-bottom: 20px; color: #1c2833; }
-        #sidebar ul { list-style: none; padding: 0; }
-        #sidebar li { margin-bottom: 15px; }
-        #sidebar a { text-decoration: none; color: #7f8c8d; font-size: 14px; }
-        #sidebar a:hover { color: #d9534f; font-weight: bold; }
+        /* 置頂導覽列 */
+        #nav-header { position: sticky; top: 0; background: #fff; padding: 12px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: center; gap: 20px; }
+        #nav-header a { text-decoration: none; color: #666; font-size: 14px; font-weight: bold; transition: 0.3s; }
+        #nav-header a:hover { color: #d9534f; }
 
-        /* 主內容區：留白拉大，有呼吸感 */
-        #content { margin-left: 200px; padding: 40px 30px; max-width: 800px; width: 100%; }
+        #content { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .main-title { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+        .flight-aside { background: #fff; border-left: 5px solid #d9534f; padding: 20px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 14px; }
         
-        /* 頁面大標題 */
-        h1 { font-size: 26px; margin-bottom: 5px; color: #1c2833; }
-        .sub-info { font-size: 14px; color: #abb2b9; margin-bottom: 40px; }
+        /* 每日大標題 */
+        .day-title { text-align: center; background: #2c3e50; color: #fff; padding: 8px 25px; border-radius: 50px; margin: 60px auto 30px; width: fit-content; font-size: 18px; }
 
-        /* 每一天的區域大標題 */
-        h2 { font-size: 19px; background-color: #fff; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #d9534f; box-shadow: 0 2px 5px rgba(0,0,0,0.03); margin-top: 60px; margin-bottom: 30px; cursor: pointer; }
+        /* 時間軸容器 */
+        .timeline { position: relative; width: 100%; margin: 0 auto; }
+        .timeline::after { content: ''; position: absolute; width: 2px; background-color: #d1d8e0; top: 0; bottom: 0; left: 50%; margin-left: -1px; }
 
-        /* 時間軸核心結構 */
-        .timeline-container { position: relative; padding-left: 30px; margin-bottom: 30px; }
-        .timeline-container::before { content: ''; position: absolute; left: 6px; top: 0; width: 3px; height: 100%; background: #e1e8f0; border-radius: 3px; }
+        /* 卡片容器 */
+        .container { padding: 10px 40px; position: relative; width: 50%; box-sizing: border-box; }
+        .container::after { content: ''; position: absolute; width: 12px; height: 12px; right: -9px; background-color: #fff; border: 3px solid #d9534f; top: 24px; border-radius: 50%; z-index: 1; }
 
-        /* 時間軸上的點 */
-        .timeline-point { position: absolute; left: 0; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #d9534f; z-index: 2; transition: transform 0.2s; }
+        .left { left: 0; text-align: right; }
+        .right { left: 50%; text-align: left; }
+        .right::after { left: -9px; }
 
-        /* 卡片設計 (就像截圖裡的白色框) */
-        .timeline-item { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: block; text-decoration: none; color: inherit; transition: box-shadow 0.3s, transform 0.2s; position: relative; }
-        .timeline-item:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: translateY(-3px); }
+        /* 卡片樣式 */
+        .content-card { padding: 20px; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-decoration: none; color: inherit; display: inline-block; width: 100%; transition: 0.3s; box-sizing: border-box; text-align: left; }
+        .content-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
 
-        /* 時間與小標籤 (Badge) */
-        .time-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #abb2b9; }
-        .time { font-weight: bold; color: #5d6d7e; }
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 11px; color: #fff; text-transform: uppercase; font-weight: bold; }
-        .badge-flight { background-color: #2e86de; }
-        .badge-dinner { background-color: #ff9f43; }
-        .badge-hotel { background-color: #5f27cd; }
-        .badge-scenery { background-color: #1dd1a1; }
+        .time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .time { font-weight: bold; color: #d9534f; font-size: 15px; }
+        .badge { padding: 3px 10px; border-radius: 4px; font-size: 11px; color: #fff; font-weight: bold; }
+        .bg-transport { background: #3498db; }
+        .bg-food { background: #e67e22; }
+        .bg-spot { background: #27ae60; }
+        .bg-hotel { background: #8e44ad; }
+        
+        h4 { margin: 5px 0; font-size: 17px; color: #2c3e50; }
+        p { margin: 5px 0; font-size: 14px; color: #7f8c8d; }
+        .note { font-size: 12px; color: #95a5a6; font-style: italic; display: block; margin-top: 5px; }
+        .map-btn { margin-top: 12px; color: #d9534f; font-size: 13px; font-weight: bold; border-top: 1px solid #eee; padding-top: 8px; }
 
-        /* 卡片內容 (景點/餐廳名稱) */
-        .timeline-item h4 { margin: 0 0 5px 0; font-size: 17px; color: #1a1a1a; }
-        .timeline-item .description { font-size: 14px; color: #57606f; margin-bottom: 15px; }
-
-        /* 導航按鈕 (模仿截圖底部的紅色導航連結) */
-        .map-nav { font-size: 13px; color: #d9534f; display: flex; align-items: center; }
-        .map-nav i { font-style: normal; margin-right: 5px; }
-
-        /* 手機版自動適應 */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            #sidebar { width: 100%; position: relative; height: auto; border-right: none; border-bottom: 1px solid #e1e8f0; padding: 10px; background: #fff; display: flex; align-items: center; justify-content: space-around; }
-            #sidebar h3 { display: none; }
-            #sidebar ul { display: flex; flex-wrap: wrap; justify-content: center; }
-            #sidebar li { margin: 5px 10px; }
-            #content { margin-left: 0; padding: 20px; width: calc(100% - 40px); }
-            .timeline-container { padding-left: 20px; }
-            .timeline-container::before { left: 4px; }
-            .timeline-point { left: -2px; }
+        /* 手機版 RWD */
+        @media screen and (max-width: 768px) {
+            .timeline::after { left: 31px; }
+            .container { width: 100%; padding-left: 60px; padding-right: 15px; text-align: left; }
+            .container::after { left: 22px; }
+            .right { left: 0%; }
+            .left { left: 0%; }
         }
     </style>
 </head>
 <body>
 
-<nav id="sidebar">
-    <h3>快速導覽</h3>
-    <ul>
-        <li><a href="#d1">🗓 D1</a></li>
-        <li><a href="#d2">🗓 D2</a></li>
-        <li><a href="#d3">🗓 D3</a></li>
-        <li><a href="#d4">🗓 D4</a></li>
-    </ul>
-</nav>
+<div id="nav-header">
+    <a href="#d1">D1</a>
+    <a href="#d2">D2</a>
+    <a href="#d3">D3</a>
+    <a href="#d4">D4</a>
+</div>
 
 <div id="content">
-    <h1>🌊 2026 沖繩家族旅行</h1>
-    <div class="sub-info">更新日期：2026-03-29 | 成員：大人 6 位、小孩 3 位</div>
+    <h1 class="main-title">🌊 2026 沖繩家族旅行</h1>
+    
+    <div class="flight-aside">
+        <b>✈️ 航班資訊：星宇航空 (STARLUX)</b><br>
+        去程 (4/24)：JX870 | 09:30 TPE → 12:15 OKA<br>
+        回程 (4/27)：JX871 | 13:35 OKA → 14:10 TPE<br>
+        💡 建議 11:30 抵達機場辦理報到 (回程)
+        <hr style="border:0; border-top:1px solid #eee; margin:10px 0;">
+        <b>📝 行前筆記：</b> 護照、飯店備品(床圍/澡盆)已預訂、週六美國村煙火。
+    </div>
 
-    <h2 id="d1">Day 1 | 4/24 (週五) 抵達與美國村適應日</h2>
-    <div class="timeline-container">
-        <div class="timeline-point" style="border-color: #2e86de;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row">
-                <span class="time">12:15</span>
-                <span class="badge badge-flight">✈️ 交通</span>
+    <div class="day-title" id="d1">📍 Day 1 | 4/24 (週五)</div>
+    <div class="timeline">
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/那霸機場" target="_blank">
+                <div class="time-row"><span class="time">12:15</span><span class="badge bg-transport">✈️ 交通</span></div>
+                <h4>抵達那霸機場 (JX870)</h4>
+                <p>領取行李、辦理租車</p>
+                <div class="map-btn">📍 導航至機場</div>
+            </a>
+        </div>
+        <div class="container right">
+            <div class="content-card">
+                <div class="time-row"><span class="time">下午</span><span class="badge bg-hotel">🏨 住宿</span></div>
+                <h4>飯店 Check-in</h4>
+                <p>沖繩美爾度假大酒店</p>
             </div>
-            <h4>抵達那霸機場 (JX870)</h4>
-            <div class="description">領取行李、辦理租車手續</div>
-            <div class="map-nav"><i>📍</i> 導航至機場</div>
-        </a>
-
-        <div class="timeline-point" style="border-color: #1dd1a1;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row">
-                <span class="time">下午</span>
-                <span class="badge badge-scenery">🌅 景點</span>
-            </div>
-            <h4>美國村海灘散步、看夕陽</h4>
-            <div class="description">讓小孩下車跑跑，適應日本氣候</div>
-            <div class="map-nav"><i>📍</i> 導航至美國村</div>
-        </a>
-
-        <div class="timeline-point" style="border-color: #ff9f43;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row">
-                <span class="time">18:30</span>
-                <span class="badge badge-dinner">🥩 餐飲</span>
-            </div>
-            <h4>燒肉五苑 (北谷店)</h4>
-            <div class="description">不限時吃到飽，適合大家族放慢節奏</div>
-            <div class="map-nav"><i>📍</i> 導航至餐廳</div>
-        </a>
-
-        <div class="timeline-point" style="border-color: #5f27cd;"></div>
-        <div class="timeline-item">
-            <div class="time-row">
-                <span class="time">傍晚</span>
-                <span class="badge badge-hotel">🏨 住宿</span>
-            </div>
-            <h4>沖繩美爾度假大酒店</h4>
-            <div class="description">備品：床圍、澡盆已預約完成</div>
+        </div>
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/美國村" target="_blank">
+                <div class="time-row"><span class="time">下午</span><span class="badge bg-spot">🌅 景點</span></div>
+                <h4>美國村海灘散步</h4>
+                <p>看夕陽、適應氣候</p>
+                <div class="map-btn">📍 導航至美國村</div>
+            </a>
+        </div>
+        <div class="container right">
+            <a class="content-card" href="https://www.google.com/maps/search/燒肉五苑北谷店" target="_blank">
+                <div class="time-row"><span class="time">時間未定</span><span class="badge bg-food">🍱 晚餐</span></div>
+                <h4>燒肉五苑 (北谷店)</h4>
+                <span class="note">備註：不限時吃到飽</span>
+                <div class="map-btn">📍 導航至餐廳</div>
+            </a>
         </div>
     </div>
 
-    <h2 id="d2">Day 2 | 4/25 (週六) 水族館與煙火重點日</h2>
-    <div class="timeline-container">
-        <div class="timeline-point" style="border-color: #1dd1a1;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row"><span class="time">10:30</span><span class="badge badge-scenery">🐬 景點</span></div>
-            <h4>美麗海水族館 (看海豚秀)</h4>
-            <div class="map-nav"><i>📍</i> 導航至水族館</div>
-        </a>
-
-        <div class="timeline-point" style="border-color: #ff9f43;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row"><span class="time">中午</span><span class="badge badge-dinner">🍴 餐飲</span></div>
-            <h4>展望餐廳 Inoh (4F)</h4>
-            <div class="description">3歲以下免費，面海景觀自助餐</div>
-            <div class="map-nav"><i>📍</i> 導航至餐廳</div>
-        </a>
-
-        <div class="timeline-point" style="border-color: #ff9f43;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row"><span class="time">18:00</span><span class="badge badge-dinner">🐖 餐飲</span></div>
-            <h4>百年古家 大家</h4>
-            <div class="description">頂級阿古豬、預約包廂</div>
-            <div class="map-nav"><i>📍</i> 導航至餐廳</div>
-        </a>
-
-        <div class="timeline-point" style="border-color: #1dd1a1;"></div>
-        <div class="timeline-item">
-            <div class="time-row"><span class="time">20:00</span><span class="badge badge-scenery">🎆 景點</span></div>
-            <h4>美國村煙火秀 (週六限定)</h4>
+    <div class="day-title" id="d2">📍 Day 2 | 4/25 (週六)</div>
+    <div class="timeline">
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/美麗海水族館" target="_blank">
+                <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🐬 景點</span></div>
+                <h4>美麗海水族館</h4>
+                <p>看海豚秀</p>
+                <div class="map-btn">📍 導航至水族館</div>
+            </a>
+        </div>
+        <div class="container right">
+            <a class="content-card" href="https://www.google.com/maps/search/展望餐廳Inoh" target="_blank">
+                <div class="time-row"><span class="time">11:00</span><span class="badge bg-food">🍴 晚餐</span></div>
+                <h4>展望餐廳 Inoh (4樓)</h4>
+                <span class="note">備註：自助餐</span>
+                <div class="map-btn">📍 導航至餐廳</div>
+            </a>
+        </div>
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/百年古家大家" target="_blank">
+                <div class="time-row"><span class="time">17:30</span><span class="badge bg-food">🐖 晚餐</span></div>
+                <h4>百年古家 大家</h4>
+                <span class="note">備註：頂級阿古豬、古民家包廂</span>
+                <div class="map-btn">📍 導航至餐廳</div>
+            </a>
+        </div>
+        <div class="container right">
+            <div class="content-card">
+                <div class="time-row"><span class="time">20:00</span><span class="badge bg-spot">🎆 景點</span></div>
+                <h4>美國村煙火秀</h4>
+                <p>週六限定施放</p>
+            </div>
         </div>
     </div>
 
-    <h2 id="d3">Day 3 | 4/26 (週日) 動物園與換飯店</h2>
-    <div class="timeline-container">
-        <div class="timeline-point" style="border-color: #1dd1a1;"></div>
-        <a class="timeline-item" href="https://www.google.com/search?q=https://maps.app.goo.gl/ZvBvR5E5E5E5E5E5A0" target="_blank">
-            <div class="time-row"><span class="time">10:30</span><span class="badge badge-scenery">🦁 景點</span></div>
-            <h4>沖繩兒童王國</h4>
-            <div class="map-nav"><i>📍</i> 導航至園區</div>
-        </a>
+    <div class="day-title" id="d3">📍 Day 3 | 4/26 (週日)</div>
+    <div class="timeline">
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/沖繩兒童王國" target="_blank">
+                <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🦁 景點</span></div>
+                <h4>沖繩兒童王國</h4>
+                <div class="map-btn">📍 導航至兒童王國</div>
+            </a>
+        </div>
+        <div class="container right">
+            <a class="content-card" href="https://www.google.com/maps/search/御菓子御殿讀谷本店" target="_blank">
+                <div class="time-row"><span class="time">中午</span><span class="badge bg-food">🍱 午餐</span></div>
+                <h4>御菓子御殿 讀谷本店</h4>
+                <p>花笠餐廳</p>
+                <span class="note">備註：榻榻米大空間、適合小孩</span>
+                <div class="map-btn">📍 導航至餐廳</div>
+            </a>
+        </div>
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/那霸嘉新酒店" target="_blank">
+                <div class="time-row"><span class="time">15:30</span><span class="badge bg-hotel">🏨 住宿</span></div>
+                <h4>那霸 嘉新酒店 Check-in</h4>
+                <div class="map-btn">📍 導航至飯店</div>
+            </a>
+        </div>
+        <div class="container right">
+            <div class="content-card">
+                <div class="time-row"><span class="time">18:30</span><span class="badge bg-food">🍲 晚餐</span></div>
+                <h4>北谷蒸</h4>
+                <span class="note">備註：獨家蒸料理、個室包廂</span>
+            </div>
+        </div>
     </div>
 
+    <div class="day-title" id="d4">📍 Day 4 | 4/27 (週一)</div>
+    <div class="timeline">
+        <div class="container left">
+            <a class="content-card" href="https://www.google.com/maps/search/泊いゆまち魚市場" target="_blank">
+                <div class="time-row"><span class="time">08:00</span><span class="badge bg-food">🐟 早餐</span></div>
+                <h4>泊いゆまち 魚市場</h4>
+                <div class="map-btn">📍 導航至魚市場</div>
+            </a>
+        </div>
+        <div class="container right">
+            <div class="content-card">
+                <div class="time-row"><span class="time">11:30</span><span class="badge bg-transport">✈️ 交通</span></div>
+                <h4>抵達機場辦理報到</h4>
+                <p>搭乘星宇航空 JX871</p>
+            </div>
+        </div>
     </div>
+
+</div>
 
 </body>
 </html>
