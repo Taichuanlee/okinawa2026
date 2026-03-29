@@ -2,92 +2,65 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 沖繩家族旅行 | 終極 ScrollSpy 手冊</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 沖繩家族旅行 | 終極 ScrollSpy</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; margin: 0; display: flex; height: 100vh; background: #f4f7f9; color: #333; overflow: hidden; }
+        /* 核心修復：禁止左右晃動 */
+        html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; background: #f4f7f9; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; display: flex; height: 100vh; }
         
-        /* 左側行程區 (可捲動) */
-        #itinerary { width: 55%; height: 100vh; overflow-y: auto; padding: 40px 30px; box-sizing: border-box; border-right: 1px solid #ddd; scroll-behavior: smooth; z-index: 5; position: relative; }
-        
-        /* 右側地圖區 (固定) */
-        #map-container { width: 45%; height: 100vh; position: sticky; top: 0; background: #fff; z-index: 10; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
+        #itinerary { width: 55%; height: 100vh; overflow-y: auto; overflow-x: hidden; padding: 40px 25px; box-sizing: border-box; border-right: 1px solid #ddd; scroll-behavior: smooth; }
+        #map-container { width: 45%; height: 100vh; position: sticky; top: 0; background: #fff; z-index: 10; }
         #map { width: 100%; height: 100%; }
 
-        /* --- 標題動畫：流光效果 --- */
-        h1 { 
-            text-align: center; margin-top: 0; font-size: 2.2em; 
-            background: linear-gradient(120deg, #3498db, #d9534f, #3498db);
-            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shine 4s linear infinite; font-weight: 900; letter-spacing: 1px;
-        }
+        /* 標題流光動畫 */
+        h1 { text-align: center; margin: 0 0 25px 0; font-size: 2em; background: linear-gradient(120deg, #3498db, #d9534f, #3498db); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 4s linear infinite; font-weight: 900; }
         @keyframes shine { to { background-position: 200% center; } }
 
         /* 重要資訊儀表板 */
-        .dashboard-container { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 40px; }
-        .section-box { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex: 1; min-width: 260px; border-top: 5px solid #d9534f; transition: 0.3s; }
-        .section-box:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+        .dashboard-container { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 30px; }
+        .section-box { background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); flex: 1; min-width: 240px; border-top: 4px solid #d9534f; }
         .flight-info { border-top-color: #3498db; }
         .notes-info { border-top-color: #f1c40f; }
-        h3 { margin-top: 0; color: #2c3e50; font-size: 17px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: 700; }
+        h3 { margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
 
-        /* 每日行程卡片 */
-        .day-header { background: #2c3e50; color: #fff; padding: 12px 28px; border-radius: 50px; margin: 50px 0 25px 0; font-size: 19px; width: fit-content; box-shadow: 0 4px 8px rgba(0,0,0,0.15); font-weight: 700; letter-spacing: 0.5px; }
+        /* 行程卡片 */
+        .day-header { background: #2c3e50; color: #fff; padding: 10px 22px; border-radius: 50px; margin: 40px 0 20px 0; font-size: 17px; width: fit-content; }
         .card { 
-            background: #fff; border-radius: 16px; margin-bottom: 20px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); cursor: pointer; 
-            border-left: 6px solid #e0e0e0; overflow: hidden; position: relative;
+            background: #fff; border-radius: 15px; margin-bottom: 20px; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: all 0.4s ease; 
+            border-left: 6px solid #e0e0e0; overflow: hidden; cursor: pointer;
         }
-        /* 電腦版懸停效果 */
-        .card:hover { border-left-color: #d9534f; background: #fff9f9; transform: translateX(8px) translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-        /* 滾動激活時的效果 (ScrollSpy 用) */
-        .card.active-card { border-left-color: #d9534f; background: #fff9f9; box-shadow: 0 8px 24px rgba(217, 83, 79, 0.15); transform: scale(1.02); z-index: 2; }
+        /* 電腦版 hover */
+        .card:hover { border-left-color: #d9534f; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        /* 滾動偵測選中狀態 */
+        .card.active-card { border-left-color: #d9534f; background: #fff9f9; transform: scale(1.03); box-shadow: 0 8px 20px rgba(217, 83, 79, 0.15); z-index: 2; }
 
-        .card-img { width: 100%; height: 180px; object-fit: cover; display: block; }
-        .card-body { padding: 20px 25px; }
-
-        .time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .time { font-weight: bold; color: #d9534f; font-size: 16px; letter-spacing: 0.5px; }
-
-        /* 加大精緻版標籤 */
-        .badge { 
-            display: inline-block; font-size: 14px; font-weight: bold; 
-            padding: 7px 16px; border-radius: 30px; color: #fff; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12); letter-spacing: 1px;
-        }        
+        .card-img { width: 100%; height: 160px; object-fit: cover; display: block; }
+        .card-body { padding: 15px 20px; }
+        .time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .time { font-weight: bold; color: #d9534f; font-size: 15px; }
+        .badge { display: inline-block; font-size: 13px; font-weight: bold; padding: 5px 12px; border-radius: 30px; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }        
+        
         .bg-transport { background: #3498db; }
         .bg-food { background: #e67e22; }
         .bg-spot { background: #27ae60; }
         .bg-hotel { background: #8e44ad; }
         .bg-island { background: #00cec9; }
+        .note-text { font-size: 12px; color: #7f8c8d; font-style: italic; margin-top: 5px; display: block; }
 
-        .note-text { font-size: 13px; color: #7f8c8d; font-style: italic; margin-top: 8px; display: block; border-left: 2px solid #eee; padding-left: 8px; }
-
-        /* 手機版 RWD 優化 */
+        /* 手機版 RWD */
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow: auto; }
-            #map-container { 
-                width: 100%; height: 35vh; 
-                position: fixed; top: 0; 
-                z-index: 100; border-bottom: 3px solid #d9534f; 
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-            }
-            #itinerary { 
-                width: 100%; margin-top: 35vh; 
-                height: 65vh; padding: 25px; 
-                border-right: none; overflow: visible;
-            }
-            h1 { font-size: 1.6em; }
-            .day-header { font-size: 17px; padding: 10px 22px; }
-            .dashboard-container { flex-direction: column; gap: 10px; }
-            .section-box { min-width: 100%; padding: 15px; }
-            .card.active-card { transform: scale(1.01); }
+            body { flex-direction: column; height: 100vh; }
+            #map-container { width: 100%; height: 35vh; position: fixed; top: 0; z-index: 100; border-bottom: 3px solid #d9534f; }
+            #itinerary { width: 100%; margin-top: 35vh; height: 65vh; padding: 20px; border-right: none; }
+            .card.active-card { transform: scale(1.02); }
+            .dashboard-container { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-
 <div id="itinerary">
     <h1>🌊 2026 沖繩家族旅行</h1>
 
@@ -119,21 +92,21 @@
         </div>
     </div>
     <div class="card" data-location="hotel1">
-        <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80" class="card-img">
+        <img src="https://wkitty.tw/wp-content/uploads/2018/03/1522392845-9a4cde4394e035fc89cfac9ab60c2d6d.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">下午</span><span class="badge bg-hotel">🏨 住宿</span></div>
             <h4>沖繩美爾度假大酒店</h4><p>Check-in 休息，稍作整頓。</p>
         </div>
     </div>
     <div class="card" data-location="goen">
-        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80" class="card-img">
+        <img src="https://bigsharkgogogo.tw/wp-content/uploads/2024/09/goen-22-jpg.webp" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">17:00</span><span class="badge bg-food">🍱 晚餐</span></div>
             <h4>燒肉五苑 (北谷店)</h4><span class="note-text">不限時吃到飽，家族首選。</span>
         </div>
     </div>
     <div class="card" data-location="americanVillage">
-        <img src="https://images.unsplash.com/photo-1542361345-89e58247f2d5?w=800&q=80" class="card-img">
+        <img src="https://d1grca2t3zpuug.cloudfront.net/2025/08/20250813okinawaMihamaAmericanVillageatnight_860x500-860x500-1755142381.webp" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">晚間</span><span class="badge bg-spot">🌅 景點</span></div>
             <h4>美國村海灘</h4><p>夕陽散步、逛街，感受異國風情。</p>
@@ -142,56 +115,65 @@
 
     <div class="day-header">📍 Day 2 | 4/25 (週六)</div>
     <div class="card" data-location="aquarium">
-        <img src="https://images.unsplash.com/photo-1509233725247-49e657c54213?w=800&q=80" class="card-img">
+        <img src="https://res.klook.com/images/fl_lossy.progressive,q_65/c_fill,w_1200,h_630/w_80,x_15,y_15,g_south_west,l_Klook_water_br_trans_yhcmh3/activities/ziujvpfayb4cmbi0jzmx/%E6%B2%96%E7%B9%A9%E7%BE%8E%E9%BA%97%E6%B5%B7%E6%B0%B4%E6%97%8F%E9%A4%A8%EF%BC%86%E7%BE%8E%E5%9C%8B%E6%9D%91%EF%BC%86%E8%90%AC%E5%BA%A7%E6%AF%9B%E4%B9%8B%E6%97%85-Klook%E5%AE%A2%E8%B7%AF.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🐬 景點</span></div>
             <h4>美麗海水族館</h4><p>黑潮之海大水槽、精彩海豚秀。</p>
         </div>
     </div>
     <div class="card" data-location="inoh">
+        <img src="https://churaumi.okinawa/userfiles/images/area/restaurant/01/20200608_resutoranino.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">11:00</span><span class="badge bg-food">🍴 午餐</span></div>
             <h4>展望餐廳 Inoh (4樓)</h4><span class="note-text">備註：水族館內自助餐。</span>
         </div>
     </div>
     <div class="card" data-location="kourijima">
-        <img src="https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&q=80" class="card-img">
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi77lvGjf-stCENAr8kb18EfmXvlthnRN8nEcuLQBbkc8eR3a4wm-28hBenuCPzOk5KEeFvNPoz0KRcyF37jrXeteGtQ1F3TfcKTKp2nkDi2OoRxstQGUpBfFdrHl-t4jyoMF9ChQZNY1x8h3P6ID5I4xLRQjp5ij60oHOOvjsDgAqSf0Isxjr8jvxSIY72/s1600-rw/Okinawa-Kouri-Bridge-2.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">下午</span><span class="badge bg-island">🏝️ 景點</span></div>
             <h4>古宇利島</h4><p>跨海大橋、海灘、蝦蝦飯。</p>
         </div>
     </div>
     <div class="card" data-location="ufuya">
-        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80" class="card-img">
+        <img src="https://www.tabirai.net/tabirai-uploader/img/0023016/s1_0023016.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">17:30</span><span class="badge bg-food">🐖 晚餐</span></div>
             <h4>百年古家 大家</h4><span class="note-text">古民家氛圍享受阿古豬。</span>
         </div>
     </div>
+    <div class="card" data-location="americanVillage">
+        <img src="https://www.ringring.com.tw/wp-content/uploads/2025/05/00-2.jpg" class="card-img">
+        <div class="card-body">
+            <div class="time-row"><span class="time">20:00</span><span class="badge bg-spot">🎆 煙火</span></div>
+            <h4>美國村煙火秀</h4><p>週六限定施放。</p>
+        </div>
+    </div>
 
     <div class="day-header">📍 Day 3 | 4/26 (週日)</div>
     <div class="card" data-location="zoo">
-        <img src="https://images.unsplash.com/photo-1534567153574-2b12153a87f0?w=800&q=80" class="card-img">
+        <img src="https://photo.settour.com.tw/900x600/https://www.settour.com.tw/ss_img/info/location/OKA/A0/OKA0000441/OKA0000441_71826.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🦁 景點</span></div>
-            <h4>沖繩兒童王國</h4><p>動物園與科學館，消耗體力。</p>
+            <h4>沖繩兒童王國</h4><p>動物園與科學館。</p>
         </div>
     </div>
     <div class="card" data-location="goten">
-        <img src="https://images.unsplash.com/photo-1562601579-599dec554e8d?w=800&q=80" class="card-img">
+        <img src="https://boysmom.life/wp-content/uploads/pixnet/1499534aea0528b762a88fc0f7a593c3.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">中午</span><span class="badge bg-food">🍱 午餐</span></div>
-            <h4>御菓子御殿 讀谷本店</h4><span class="note-text">備註：花笠餐廳榻榻米空間、採買伴手禮。</span>
+            <h4>御菓子御殿 讀谷本店</h4><span class="note-text">備註：花笠餐廳榻榻米空間。</span>
         </div>
     </div>  
     <div class="card" data-location="hotel2">
-        <img src="https://images.unsplash.com/photo-1541971875076-8f970d573be6?w=800&q=80" class="card-img">
+        <img src="https://bobowin.blog/wp-content/uploads/20200304105353_2.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">15:30</span><span class="badge bg-hotel">🏨 住宿</span></div>
             <h4>那霸 嘉新酒店</h4><p>Check-in，鄰近國際通。</p>
         </div>
     </div>
     <div class="card" data-location="suitenrou">
+        <img src="https://wetravelhk.com/wp-content/uploads/2023/02/%E9%A6%96%E9%87%8C%E5%A4%A9%E6%A8%93_%E5%85%AD%E8%A7%92%E5%A0%82%E7%9A%84%E6%88%BF%E9%96%93.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">未定</span><span class="badge bg-food">🍾 晚餐</span></div>
             <h4>首里天樓</h4><span class="note-text">特別裝潢、沖繩傳統料理。</span>
@@ -200,7 +182,7 @@
 
     <div class="day-header">📍 Day 4 | 4/27 (週一)</div>
     <div class="card" data-location="fishMarket">
-        <img src="https://images.unsplash.com/photo-1534482421-3d055a430d78?w=800&q=80" class="card-img">
+        <img src="https://marukoblog.tw/wp-content/uploads/flickr/49987216342_22a2db5620_b.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">08:00</span><span class="badge bg-food">🐟 早餐</span></div>
             <h4>泊いゆまち 魚市場</h4><p>海鮮巡禮，新鮮早餐。</p>
@@ -218,134 +200,83 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. 初始化環境與動態縮放判斷
     const isMobile = window.innerWidth < 768;
-    // 手機版設為 9.5 (看全島相對位置)，電腦版設為 10.5
     const initialZoom = isMobile ? 9.5 : 10.5;
+    const map = L.map('map', { scrollWheelZoom: !isMobile }).setView([26.45, 127.9], initialZoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // 2. 初始化地圖
-    const map = L.map('map', { 
-        scrollWheelZoom: !isMobile, // 手機禁用滾輪縮放，避免誤觸
-        dragging: true 
-    }).setView([26.45, 127.9], initialZoom);
-
-    // 3. 使用 OpenStreetMap 免費圖磚
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    // 4. 精確經緯度座標資料庫
+    // 🏆 已幫你補齊所有遺漏的經緯度座標
     const locations = {
         airport: { lat: 26.2064, lng: 127.6465, name: "那霸機場" },
-        hotel1: { lat: 26.3315, lng: 127.8175, name: "沖繩美爾度假大酒店" },
-        americanVillage: { lat: 26.3163, lng: 127.7576, name: "美國村海灘" },
+        hotel1: { lat: 26.3315, lng: 127.8175, name: "沖繩美爾度假酒店" },
         goen: { lat: 26.3125, lng: 127.7635, name: "燒肉五苑" },
+        americanVillage: { lat: 26.3163, lng: 127.7576, name: "美國村" },
         aquarium: { lat: 26.6944, lng: 127.8779, name: "美麗海水族館" },
         inoh: { lat: 26.6940, lng: 127.8785, name: "展望餐廳 Inoh" },
         kourijima: { lat: 26.7118, lng: 128.0195, name: "古宇利島" },
         ufuya: { lat: 26.6225, lng: 127.9655, name: "百年古家 大家" },
         zoo: { lat: 26.3312, lng: 127.8005, name: "沖繩兒童王國" },
-        goten: { lat: 26.3935, lng: 127.7395, name: "御菓子御殿" },
+        goten: { lat: 26.3935, lng: 127.7395, name: "御菓子御殿 讀谷本店" },
         hotel2: { lat: 26.2165, lng: 127.6845, name: "那霸 嘉新酒店" },
         suitenrou: { lat: 26.2160, lng: 127.6869, name: "首里天樓" },
         fishMarket: { lat: 26.2275, lng: 127.6865, name: "泊いゆまち 魚市場" }
     };
 
     const markers = {};
-    const markerGroup = L.featureGroup(); // 用於群組標記，方便一次重設
-
-    // 5. 放置藍色小圓點標記
     for (let key in locations) {
         const loc = locations[key];
-        markers[key] = L.circleMarker([loc.lat, loc.lng], {
-            radius: 8,
-            fillColor: "#3498db",
-            color: "#fff",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
-        }).bindPopup(loc.name);
-        markerGroup.addLayer(markers[key]);
+        markers[key] = L.circleMarker([loc.lat, loc.lng], { radius: 8, fillColor: "#3498db", color: "#fff", weight: 2, fillOpacity: 0.8 }).addTo(map).bindPopup(loc.name);
     }
-    markerGroup.addTo(map);
 
-    // 6. 核心功能：連動地圖跳轉與高亮
+    let lastActiveKey = "";
+
     function focusLocation(key, shouldPan = true) {
-        if (!locations[key]) return;
+        if (!locations[key] || key === lastActiveKey) return;
+        lastActiveKey = key;
+
         const loc = locations[key];
-        const marker = markers[key];
-        
-        // 重設所有標記為預設藍色
-        markerGroup.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker) {
-                layer.setStyle({ radius: 8, fillColor: "#3498db", fillOpacity: 0.8 });
-            }
-        });
+        for (let k in markers) { markers[k].setStyle({ radius: 8, fillColor: "#3498db" }); }
+        markers[key].setStyle({ radius: 15, fillColor: "#d9534f" });
+        markers[key].openPopup();
+        if (shouldPan) map.panTo([loc.lat, loc.lng]);
 
-        // 高亮當前標記為大紅點
-        marker.setStyle({
-            radius: 16,
-            fillColor: "#d9534f",
-            fillOpacity: 1
-        });
-        marker.openPopup();
-        
-        // 平滑移到該位置，不改變縮放級別
-        if (shouldPan) {
-            map.panTo([loc.lat, loc.lng]);
-        }
-
-        // 高亮對應行程卡片 (針對 ScrollSpy)
         document.querySelectorAll('.card').forEach(c => c.classList.remove('active-card'));
         const activeCard = document.querySelector(`.card[data-location="${key}"]`);
         if (activeCard) activeCard.classList.add('active-card');
     }
 
-    // 7. --- 電腦版交互：保留滑鼠經過效果 ---
-    if (!isMobile) {
-        document.querySelectorAll('.card').forEach(card => {
-            const locKey = card.getAttribute('data-location');
-            card.addEventListener('mouseover', () => focusLocation(locKey));
-        });
-    }
+    // 🏆 滾動偵測腳本 (已修正 ID 並優化手機偵測線)
+    const itinerary = document.getElementById('itinerary');
+    itinerary.addEventListener('scroll', () => {
+        const cards = document.querySelectorAll('.card');
+        let closestCard = null;
+        let minDistance = Infinity;
 
-    // 8. --- 手機與電腦通用：自動導航滾動偵測 (ScrollSpy) ---
-    // 使用 Intersection Observer，監視器區域設為螢幕中間
-    const observerOptions = {
-        root: isMobile ? document.getElementById('itinerary') : null, // 修正手機版定位問題
-        rootMargin: '-30% 0px -40% 0px', // 盯著螢幕中間靠上 30%-60% 的區域
-        threshold: 0.1 // 只要景點卡片進入 10% 就觸發
-    };
+        // 手機版判定線設在螢幕 45% 高處，電腦版 40%
+        const detectorLine = isMobile ? window.innerHeight * 0.45 : window.innerHeight * 0.4;
 
-    const observerCallback = (entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const locKey = entry.target.getAttribute('data-location');
-                // 手機版滑動時不主動 panTo 避免干擾，僅在點擊時 panTo
-                focusLocation(locKey, isMobile ? false : true); 
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const cardMid = rect.top + rect.height / 2;
+            const distance = Math.abs(cardMid - detectorLine);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestCard = card;
             }
         });
-    };
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    // 盯住所有行程卡片
-    document.querySelectorAll('.card').forEach(card => observer.observe(card));
-
-    // 針對手機版：讓卡片本身可以點擊跳轉 (onclick)
-    document.querySelectorAll('.card').forEach(card => {
-        const locKey = card.getAttribute('data-location');
-        card.addEventListener('click', () => focusLocation(locKey, true));
+        if (closestCard) {
+            const locKey = closestCard.getAttribute('data-location');
+            // 手機版滾動時地圖不平移 (panTo)，僅切換紅點；電腦版則平移
+            focusLocation(locKey, isMobile ? false : true);
+        }
     });
 
-    // 9. 點擊地圖空白處重設所有狀態
-    map.on('click', function() {
-        markerGroup.eachLayer(layer => {
-            if (layer instanceof L.CircleMarker) {
-                layer.setStyle({ radius: 8, fillColor: "#3498db", fillOpacity: 0.8 });
-                layer.closePopup();
-            }
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', () => {
+            focusLocation(card.getAttribute('data-location'), true);
         });
-        document.querySelectorAll('.card').forEach(c => c.classList.remove('active-card'));
     });
 </script>
 </body>
