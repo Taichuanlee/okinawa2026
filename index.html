@@ -33,7 +33,18 @@
 
         .time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .time { font-weight: bold; color: #d9534f; font-size: 15px; }
-        .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: bold; }
+        /* --- 優化後的標籤（Badge）樣式 --- */
+        .badge { 
+            display: inline-block; /* 確保標籤有自己的空間 */
+            font-size: 14px;       /* 粗體，加大字體 (原本是 11px) */
+            font-weight: bold;
+            padding: 6px 14px;     /* 拉大內距，上下 6px、左右 14px，讓標籤更有存在感 */
+            border-radius: 30px;   /* 變成圓角矩形 (更像現代 UI) */
+            color: #fff; 
+            margin-right: 5px;     /* 跟時間保持一點距離 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 加一點點淡淡的陰影，讓標籤立體起來 */
+            letter-spacing: 0.5px; /* 字距拉開一點點，更好讀 */
+        }        
         
         /* 標籤顏色 */
         .bg-transport { background: #3498db; }
