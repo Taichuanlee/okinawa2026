@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 沖繩家族旅行 | 終極 ScrollSpy</title>
+    <title>2026 沖繩家族旅行 | Lee Family</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         /* 核心修復：禁止左右晃動 */
@@ -25,20 +25,35 @@
         .notes-info { border-top-color: #f1c40f; }
         h3 { margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
 
-        /* 行程卡片 */
+        /* 行程卡片：電腦版左右分欄設計 */
         .day-header { background: #2c3e50; color: #fff; padding: 10px 22px; border-radius: 50px; margin: 40px 0 20px 0; font-size: 17px; width: fit-content; }
+        
         .card { 
             background: #fff; border-radius: 15px; margin-bottom: 20px; 
             box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: all 0.4s ease; 
             border-left: 6px solid #e0e0e0; overflow: hidden; cursor: pointer;
+            display: flex; /* 電腦版改為左右分欄 */
+            align-items: center; 
         }
-        /* 電腦版 hover */
+        
+        /* 電腦版 hover 與 滾動選中狀態 */
         .card:hover { border-left-color: #d9534f; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        /* 滾動偵測選中狀態 */
         .card.active-card { border-left-color: #d9534f; background: #fff9f9; transform: scale(1.03); box-shadow: 0 8px 20px rgba(217, 83, 79, 0.15); z-index: 2; }
 
-        .card-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
-        .card-body { padding: 15px 20px; }
+        /* 電腦版圖片比例：精緻正方形或稍長 */
+        .card-img { 
+            width: 35%; /* 電腦版寬度縮小 */
+            height: 100%; 
+            aspect-ratio: 1 / 1; /* 電腦版強制 1:1 或 4:3 都可以 */
+            object-fit: cover; 
+            display: block; 
+        }
+        
+        .card-body { 
+            width: 65%; /* 文字佔大比例 */
+            padding: 20px 25px; 
+        }
+
         .time-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .time { font-weight: bold; color: #d9534f; font-size: 15px; }
         .badge { display: inline-block; font-size: 13px; font-weight: bold; padding: 5px 12px; border-radius: 30px; color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }        
@@ -50,11 +65,16 @@
         .bg-island { background: #00cec9; }
         .note-text { font-size: 12px; color: #7f8c8d; font-style: italic; margin-top: 5px; display: block; }
 
-        /* 手機版 RWD */
+        /* 手機版 RWD：還原成上下疊加 */
         @media (max-width: 768px) {
             body { flex-direction: column; height: 100vh; }
             #map-container { width: 100%; height: 35vh; position: fixed; top: 0; z-index: 100; border-bottom: 3px solid #d9534f; }
             #itinerary { width: 100%; margin-top: 35vh; height: 65vh; padding: 20px; border-right: none; }
+            
+            .card { flex-direction: column; align-items: flex-start; } /* 還原上下分 */
+            .card-img { width: 100%; height: auto; aspect-ratio: 16 / 9; } /* 手機版維持原本比例 */
+            .card-body { width: 100%; padding: 15px 20px; }
+            
             .card.active-card { transform: scale(1.02); }
             .dashboard-container { flex-direction: column; }
         }
@@ -78,7 +98,7 @@
             <div style="font-size: 13px; line-height: 1.7;">
                 • 匯率參考：0.21 - 0.22 (日幣)<br>
                 • 天氣：21°C ~ 26°C (薄長袖)<br>
-                • <span style="font-weight: bold; color: #d35400;">記得要帶護照，跟愉快的心 🥰  </span>
+                • <span style="font-weight: bold; color: #d35400;">記得要帶護照，跟愉快的心 🥰</span>
             </div>
         </div>
     </div>
@@ -87,7 +107,7 @@
     <div class="card" data-location="airport">
         <img src="https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=800&q=80" class="card-img">
         <div class="card-body">
-            <div class="time-row"><span class="time">12:15</span><span class="badge bg-transport">✈️ 抵達 OKA</span></div>
+            <div class="time-row"><span class="time">12:15</span><span class="badge bg-transport">✈️ 交通</span></div>
             <h4>抵達那霸機場</h4><p>辦理租車手續，開啟旅程。</p>
         </div>
     </div>
@@ -162,14 +182,14 @@
         <img src="https://boysmom.life/wp-content/uploads/pixnet/1499534aea0528b762a88fc0f7a593c3.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">中午</span><span class="badge bg-food">🍱 午餐</span></div>
-            <h4>御菓子御殿 讀谷本店</h4><span class="note-text">備註：花笠餐廳、可採買伴手禮。</span>
+            <h4>御菓子御殿 讀谷本店</h4><span class="note-text">備註：花笠餐廳榻榻米空間。</span>
         </div>
     </div>  
     <div class="card" data-location="hotel2">
         <img src="https://bobowin.blog/wp-content/uploads/20200304105353_2.jpg" class="card-img">
         <div class="card-body">
             <div class="time-row"><span class="time">15:30</span><span class="badge bg-hotel">🏨 住宿</span></div>
-            <h4>那霸 嘉新酒店</h4><p>Check-in，鄰近國際通，可逛街。</p>
+            <h4>那霸 嘉新酒店</h4><p>Check-in，鄰近國際通。</p>
         </div>
     </div>
     <div class="card" data-location="suitenrou">
@@ -205,7 +225,6 @@
     const map = L.map('map', { scrollWheelZoom: !isMobile }).setView([26.45, 127.9], initialZoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // 🏆 已幫你補齊所有遺漏的經緯度座標
     const locations = {
         airport: { lat: 26.2064, lng: 127.6465, name: "那霸機場" },
         hotel1: { lat: 26.3315, lng: 127.8175, name: "沖繩美爾度假酒店" },
@@ -233,50 +252,36 @@
     function focusLocation(key, shouldPan = true) {
         if (!locations[key] || key === lastActiveKey) return;
         lastActiveKey = key;
-
         const loc = locations[key];
         for (let k in markers) { markers[k].setStyle({ radius: 8, fillColor: "#3498db" }); }
         markers[key].setStyle({ radius: 15, fillColor: "#d9534f" });
         markers[key].openPopup();
         if (shouldPan) map.panTo([loc.lat, loc.lng]);
-
         document.querySelectorAll('.card').forEach(c => c.classList.remove('active-card'));
         const activeCard = document.querySelector(`.card[data-location="${key}"]`);
         if (activeCard) activeCard.classList.add('active-card');
     }
 
-    // 🏆 滾動偵測腳本 (已修正 ID 並優化手機偵測線)
     const itinerary = document.getElementById('itinerary');
     itinerary.addEventListener('scroll', () => {
         const cards = document.querySelectorAll('.card');
         let closestCard = null;
         let minDistance = Infinity;
-
-        // 手機版判定線設在螢幕 45% 高處，電腦版 40%
         const detectorLine = isMobile ? window.innerHeight * 0.45 : window.innerHeight * 0.4;
-
         cards.forEach(card => {
             const rect = card.getBoundingClientRect();
             const cardMid = rect.top + rect.height / 2;
             const distance = Math.abs(cardMid - detectorLine);
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestCard = card;
-            }
+            if (distance < minDistance) { minDistance = distance; closestCard = card; }
         });
-
         if (closestCard) {
             const locKey = closestCard.getAttribute('data-location');
-            // 手機版滾動時地圖不平移 (panTo)，僅切換紅點；電腦版則平移
             focusLocation(locKey, isMobile ? false : true);
         }
     });
 
     document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', () => {
-            focusLocation(card.getAttribute('data-location'), true);
-        });
+        card.addEventListener('click', () => { focusLocation(card.getAttribute('data-location'), true); });
     });
 </script>
 </body>
