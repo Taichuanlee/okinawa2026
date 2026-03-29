@@ -85,9 +85,9 @@
     <div class="section-box notes-info">
         <h3>📝 行前筆記</h3>
         <ul style="font-size: 14px; padding-left: 20px; line-height: 1.8;">
-            <li>護照、個人藥品、愉快的心 🥰</li>
+            <li>護照、個人藥品、<span style="font-weight: bold; color: #d35400;">愉快的心 🥰</span></li>
             <li>預約清單：床圍、澡盆（確認完成）。</li>
-            <li style="font-weight: bold; color: #d35400;">4/25 (六) 20:00 美國村煙火</li>
+            <li>4/25 (六) 20:00 美國村煙火</li>
         </ul>
     </div>
 
@@ -102,17 +102,16 @@
         <h4>沖繩美爾度假大酒店</h4>
         <p>Check-in 休息</p>
     </div>
-    <div class="card" onmouseover="focusLocation('americanVillage')">
-        <div class="time-row"><span class="time">黃昏</span><span class="badge bg-spot">🌅 景點</span></div>
-        <h4>美國村海灘</h4>
-        <p>夕陽與散步</p>
-    </div>
     <div class="card" onmouseover="focusLocation('goen')">
-        <div class="time-row"><span class="time">晚間</span><span class="badge bg-food">🍱 晚餐</span></div>
+        <div class="time-row"><span class="time">17:00</span><span class="badge bg-food">🍱 晚餐</span></div>
         <h4>燒肉五苑 (北谷店)</h4>
         <span class="note-text">不限時吃到飽</span>
     </div>
-
+    <div class="card" onmouseover="focusLocation('americanVillage')">
+        <div class="time-row"><span class="time">晚間</span><span class="badge bg-spot">🌅 景點</span></div>
+        <h4>美國村海灘</h4>
+        <p>吃飽飯散步、逛街</p>
+    </div>
     <div class="day-header">📍 Day 2 | 4/25 (週六)</div>
     <div class="card" onmouseover="focusLocation('aquarium')">
         <div class="time-row"><span class="time">10:30</span><span class="badge bg-spot">🐬 景點</span></div>
@@ -136,6 +135,11 @@
         <h4>沖繩兒童王國</h4>
         <p>動物園與科學館</p>
     </div>
+    <div class="card" onmouseover="focusLocation('goten')">
+        <div class="time-row"><span class="time">中午</span><span class="badge bg-food">🍱 午餐</span></div>
+        <h4>御菓子御殿 讀谷本店</h4>
+        <span class="note-text">備註：花笠餐廳 (榻榻米空間)、伴手禮採買</span>
+    </div>  
     <div class="card" onmouseover="focusLocation('hotel2')">
         <div class="time-row"><span class="time">15:30</span><span class="badge bg-hotel">🏨 住宿</span></div>
         <h4>那霸 嘉新酒店</h4>
@@ -185,6 +189,7 @@
         kourijima: { lat: 26.7118, lng: 128.0195, name: "古宇利島" },
         ufuya: { lat: 26.6225, lng: 127.9655, name: "百年古家 大家" },
         zoo: { lat: 26.3312, lng: 127.8005, name: "沖繩兒童王國" },
+        goten: { lat: 26.3935, lng: 127.7395, name: "御菓子御殿 讀谷本店" },
         hotel2: { lat: 26.2165, lng: 127.6845, name: "嘉新酒店" },
         fishMarket: { lat: 26.2275, lng: 127.6865, name: "泊いゆまち 魚市場" }
     };
