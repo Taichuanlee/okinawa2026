@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>旅遊手冊產生器 V2.0</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; background: #f0f2f5; color: #333; }
+        #admin-panel { width: 400px; background: #fff; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); overflow-y: auto; z-index: 100; }
+        .input-group { margin-bottom: 20px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px; position: relative; background: #fdfdfd; padding: 10px; border-radius: 8px; }
+        .day-group { border-left: 5px solid #2c3e50; background: #f8f9fa; } /* 日期標題的後台樣式 */
+        .delete-btn { position: absolute; right: 10px; top: 10px; color: #e74c3c; cursor: pointer; font-size: 12px; font-weight: bold; }
+        label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; margin-bottom: 8px; font-size: 14px; }
+        textarea { height: 80px; resize: vertical; }
+        .coords-row { display: flex; gap: 10px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 8px; }
+        .btn-add { background: #3498db; color: #fff; }
+        .btn-day { background: #2c3e50; color: #fff; }
+        .btn-export { background: #27ae60; color: #fff; margin-top: 20px; font-size: 16px; }
+
+        /* 右側預覽 */
+        #preview-area { flex-grow: 1; display: flex; height: 100vh; overflow: hidden; background: #eee; }
+        #itinerary-view { width: 50%; height: 100vh; overflow-y: auto; padding: 40px 25px; background: #f4f7f9; box-sizing: border-box; }
+        #map-view { width: 50%; height: 100vh; }
+        .preview-day { background: #2c3e50; color: #fff; padding: 8px 20px; border-radius: 50px; margin: 30px 0 15px 0; font-size: 16px; width: fit-content; }
+        .preview-card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #3498db; display: flex; gap: 15px; align-items: center; }
+        .preview-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+        .info-box { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px; border-top: 5px solid #f1c40f; font-size: 13px; line-height: 1.6; }
+        h1 { text-align: center; color: #2c3e50; margin-top: 0; }
+    </style>
+</head>
+<body>
+
+<div id="admin-panel">
+    <h2>🛠️ 行程產生器 V2.0</h2>
+    
+    <div class="input-group">
+        <label>行程主標題</label>
+        <input type="text" id="in-title" value="我的日本之旅" oninput="updatePreview()">
+        
+        <label>📌 重要資訊 / 備註 (不填則不顯示)</label>
+        <textarea id="in-notes" placeholder="例如：航班資訊、天氣提醒..." oninput="updatePreview()"></textarea>
+    </div>
+
+    <div id="item-inputs"></div>
+
+    <button class="btn-add" onclick="addNewItem()">➕ 新增景點</button>
+    <button class="btn-day" onclick="addDayHeader()">📅 插入日期標籤</button>
+    <button class="btn-export" onclick="exportFinalHTML()">💾 生成並下載網頁檔案</button>
+</div>
+
+<div id="preview-area">
+    <div id="itinerary-view">
+        <h1 id="view-title">我的日本之旅</h1>
+        <div id="view-notes" class="info-box" style="display:none;"></div>
+        <div id="view-list"></div>
+    </div>
+    <div id="map-view"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // 資料結構：新增了 isDay 屬性來區分是日期還是景點
+    let tripData = [
+        { isDay: true, text: "Day 1 | 4/24 (週五)" },
+        { time: "12:15", name: "那霸機場", lat: 26.2064, lng: 127.6465, img: "" }
+    ];
+
+    const map = L.map('map-view').setView([26.2, 127.6], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let markerLayer = L.layerGroup().addTo(map);
+
+    function updatePreview() {
+        document.getElementById('view-title').innerText = document.getElementById('in-title').value;
+        
+        // 處理重要資訊顯示邏輯
+        const notes = document.getElementById('in-notes').value;
+        const notesView = document.getElementById('view-notes');
+        if (notes.trim()) {
+            notesView.innerHTML = "<strong>📝 重要資訊：</strong><br>" + notes.replace(/\n/g, '<br>');
+            notesView.style.display = "block";
+        } else {
+            notesView.style.display = "none";
+        }
+
+        const list = document.getElementById('view-list');
+        list.innerHTML = "";
+        markerLayer.clearLayers();
+        let validCoords = [];
+
+        tripData.forEach((item, index) => {
+            if (item.isDay) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'preview-day';
+                dayDiv.innerText = item.text;
+                list.appendChild(dayDiv);
+            } else {
+                const card = document.createElement('div');
+                card.className = 'preview-card';
+                card.innerHTML = `
+                    <img src="${item.img || 'https://via.placeholder.com/100?text=No+Img'}">
+                    <div>
+                        <div style="color:#d9534f; font-weight:bold; font-size:13px;">${item.time}</div>
+                        <div style="font-weight:bold;">${item.name}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+                if (item.lat && item.lng) {
+                    L.marker([item.lat, item.lng]).addTo(markerLayer).bindPopup(item.name);
+                    validCoords.push([item.lat, item.lng]);
+                }
+            }
+        });
+        if (validCoords.length > 0) map.flyTo(validCoords[validCoords.length - 1], 11);
+    }
+
+    function renderInputs() {
+        const container = document.getElementById('item-inputs');
+        container.innerHTML = "";
+        tripData.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = "input-group" + (item.isDay ? " day-group" : "");
+            
+            if (item.isDay) {
+                div.innerHTML = `
+                    <span class="delete-btn" onclick="removeItem(${index})">✕ 刪除</span>
+                    <label>📅 日期標題 (例如：Day 1 | 4/24)</label>
+                    <input type="text" value="${item.text}" oninput="tripData[${index}].text=this.value; updatePreview()">
+                `;
+            } else {
+                div.innerHTML = `
+                    <span class="delete-btn" onclick="removeItem(${index})">✕ 刪除</span>
+                    <label>景點名稱</label>
+                    <input type="text" value="${item.name}" oninput="tripData[${index}].name=this.value; updatePreview()">
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;"><label>時間</label><input type="text" value="${item.time}" oninput="tripData[${index}].time=this.value; updatePreview()"></div>
+                        <div style="flex:2;"><label>圖片網址</label><input type="text" value="${item.img}" placeholder="https://..." oninput="tripData[${index}].img=this.value; updatePreview()"></div>
+                    </div>
+                    <label>📍 貼上網址自動抓座標</label>
+                    <input type="text" placeholder="貼上 Google Maps 網址" onpaste="handleUrlPaste(event, ${index})">
+                    <div class="coords-row">
+                        <input type="number" step="any" id="lat-${index}" placeholder="緯度" value="${item.lat}" oninput="tripData[${index}].lat=parseFloat(this.value); updatePreview()">
+                        <input type="number" step="any" id="lng-${index}" placeholder="經度" value="${item.lng}" oninput="tripData[${index}].lng=parseFloat(this.value); updatePreview()">
+                    </div>
+                `;
+            }
+            container.appendChild(div);
+        });
+    }
+
+    function handleUrlPaste(event, index) {
+        setTimeout(() => {
+            const url = event.target.value;
+            const regex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+            const match = url.match(regex);
+            if (match) {
+                tripData[index].lat = parseFloat(match[1]);
+                tripData[index].lng = parseFloat(match[2]);
+                renderInputs();
+                updatePreview();
+            }
+        }, 100);
+    }
+
+    function addNewItem() { tripData.push({ time: "", name: "新景點", lat: "", lng: "", img: "" }); renderInputs(); updatePreview(); }
+    function addDayHeader() { tripData.push({ isDay: true, text: "新的一天" }); renderInputs(); updatePreview(); }
+    function removeItem(index) { tripData.splice(index, 1); renderInputs(); updatePreview(); }
+
+    function exportFinalHTML() {
+        const title = document.getElementById('in-title').value;
+        const notes = document.getElementById('in-notes').value;
+        const dataString = JSON.stringify(tripData);
+        
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; background: #f4f7f9; }
+        #itinerary { width: 50%; height: 100vh; overflow-y: auto; padding: 30px; box-sizing: border-box; }
+        #map { width: 50%; height: 100vh; position: sticky; top: 0; }
+        .day-h { background: #2c3e50; color: #fff; padding: 10px 25px; border-radius: 50px; margin: 40px 0 20px 0; width: fit-content; }
+        .card { background: #fff; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 6px solid #3498db; display: flex; gap: 20px; align-items: center; }
+        .card img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; background: #eee; }
+        .info-box { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 30px; border-top: 6px solid #f1c40f; line-height: 1.7; }
+        @media (max-width: 768px) { body { flex-direction: column; } #itinerary, #map { width: 100%; height: 50vh; } }
+    </style>
+</head>
+<body>
+    <div id="itinerary">
+        <h1 style="text-align:center;">🌊 ${title}</h1>
+        ${notes ? `<div class="info-box"><strong>📌 重要資訊：</strong><br>${notes.replace(/\n/g, '<br>')}</div>` : ''}
+        <div id="list"></div>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+    <script>
+        const data = ${dataString};
+        const first = data.find(d => d.lat) || {lat: 25, lng: 121};
+        const map = L.map('map').setView([first.lat, first.lng], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        data.forEach(item => {
+            if(item.isDay) {
+                const h = document.createElement('div'); h.className='day-h'; h.innerText=item.text;
+                document.getElementById('list').appendChild(h);
+            } else {
+                const div = document.createElement('div'); div.className='card';
+                div.innerHTML = \`<img src="\${item.img || ''}"><div><div style="color:#d9534f;font-weight:bold;">\${item.time}</div><h3>\${item.name}</h3></div>\`;
+                document.getElementById('list').appendChild(div);
+                if(item.lat) L.marker([item.lat, item.lng]).addTo(map).bindPopup(item.name);
+            }
+        });
+    <\/script>
+</body>
+</html>`;
+
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'trip_v2.html';
+        a.click();
+    }
+    renderInputs(); updatePreview();
+</script>
+</body>
+</html>
