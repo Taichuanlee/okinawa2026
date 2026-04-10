@@ -174,17 +174,35 @@
     document.getElementById('login-btn').addEventListener('click', async () => {
         try {
             const result = await signInWithPopup(auth, provider);
-            console.log("登入成功:", result.user.email);
-            alert("驗證成功: " + result.user.email);
+            const user = result.user;
+            alert("驗證成功: " + user.email);
             
-            // 登入成功後，切換顯示區塊
+            // 登入成功後，顯示資料區塊
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('data-section').style.display = 'block';
+
+            // --- 核心功能：從 Firebase 抓資料 ---
+            const docRef = doc(db, "trips", "okinawa_test"); // 指向你手動建立的那個位置
             
-            // 下一步我們會在這裡寫：去抓 Firebase 裡的資料
+            // 使用 onSnapshot 監聽，這樣如果你在 Firebase 後台改字，網頁會立刻跟著變！
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('secret-content').innerHTML = `
+                        <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; border-left: 4px solid #27ae60;">
+                            <p style="margin:0; font-weight:bold; color:#2c3e50;">雲端標題：</p>
+                            <p style="font-size: 18px; color: #d9534f;">${data.title}</p>
+                        </div>
+                        <p style="font-size:12px; color:#999; margin-top:10px;">(此資料即時同步自 Firebase 資料庫)</p>
+                    `;
+                } else {
+                    document.getElementById('secret-content').innerText = "找不到雲端資料。";
+                }
+            });
+
         } catch (error) {
             console.error("登入失敗:", error);
-            alert("登入失敗，請稍後再試。");
+            alert("登入失敗，或是你取消了登入。");
         }
     });
 </script>
